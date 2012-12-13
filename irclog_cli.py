@@ -40,6 +40,11 @@ def get_changes(channel, since):
             doc = change['doc']
             yield doc
 
+def list_channels():
+    req = irclog.get('ddoc/_view/channel', group_level=1)
+    doc = json.loads(req.body_string())
+    for ch in doc['rows']:
+        yield ch['key'][0], ch['value']
 
 def main():
     try:
