@@ -7,7 +7,7 @@ irclog = Resource("https://irc.softver.org.mk/")
 def print_message(doc):
     tm = datetime.fromtimestamp(doc['timestamp'])
     tm = tm.strftime('%H:%M:%S')
-    print "%s %s:\t %s" % (tm, doc['sender'], doc['message'])
+    print "%s %s: %s" % (tm, doc['sender'], doc['message'])
 
 def get_last_100(channel):
     startkey = '["%s",{}]' % channel
