@@ -14,7 +14,8 @@ irclog = Resource("https://irc.softver.org.mk/")
 def print_message(doc):
     tm = datetime.fromtimestamp(doc['timestamp'])
     tm = tm.strftime('%H:%M:%S')
-    print "%s %s: %s" % (tm, doc['sender'], doc['message'])
+    out = "%s %s: %s" % (tm, doc['sender'], doc['message'])
+    print(out)
 
 def get_last_100(channel):
     startkey = '["%s",{}]' % channel
@@ -50,7 +51,7 @@ def main():
     try:
         channel = sys.argv[1]
     except:
-        print __doc__
+        print(__doc__)
         exit(1)
     update_seq, msgs = get_last_100(channel)
     for msg in msgs:
