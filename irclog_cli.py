@@ -1,3 +1,10 @@
+#! /usr/bin/env python2
+'''
+Usage:
+
+  irclog_cli.py <channel>
+
+'''
 from restkit import Resource
 from datetime import datetime
 import json, sys
