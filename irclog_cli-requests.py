@@ -1,51 +1,51 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 '''
 Usage:
 
   irclog_cli.py <channel>
 
 '''
-from restkit import Resource
-from datetime import datetime
+import requests
 import json, sys
+from datetime import datetime
 
-irclog = Resource("https://irc.softver.org.mk/")
 
 def print_message(doc):
     tm = datetime.fromtimestamp(doc['timestamp'])
     tm = tm.strftime('%H:%M:%S')
-    out = "%s %s: %s" % (tm, doc['sender'], doc['message'])
-    print(out)
+    print("%s %s: %s" % (tm, doc['sender'], doc['message']))
 
 def get_last_100(channel, limit=100):
     startkey = '["%s",{}]' % channel
     endkey = '["%s",0]' % channel
 
-    req = irclog.get("ddoc/_view/channel", update_seq='true', reduce='false', descending='true',
+    params = dict(update_seq='true', reduce='false', descending='true',
             limit=limit, include_docs='true', startkey=startkey, endkey=endkey)
+    req = requests.get("https://irc.softver.org.mk/ddoc/_view/channel", params=params)
 
-    last_100 = json.loads(req.body_string())
+    last_100 = json.loads(req.text)
     def _gen():
         for row in reversed(last_100['rows']):
             yield row['doc']
     return last_100['update_seq'], _gen()
 
 def get_changes(channel, since):
-
-    req = irclog.get("api/_changes", feed='continuous', channel=channel, filter='log/channel',
+    params = dict(feed='continuous', channel=channel, filter='log/channel',
             heartbeat=30000, include_docs='true', since=since)
+    req = requests.get("https://irc.softver.org.mk/api/_changes", params=params, stream=True)
 
-    for row in req.body_stream():
+    for row in req.iter_lines(chunk_size=1, decode_unicode=True):
         if row.strip():
             change = json.loads(row)
             doc = change['doc']
             yield doc
 
 def list_channels():
-    req = irclog.get('ddoc/_view/channel', group_level=1)
-    doc = json.loads(req.body_string())
+    req = requests.get("https://irc.softver.org.mk/ddoc/_view/channel", params = {group_level:1})
+    doc = json.loads(req.text)
     for ch in doc['rows']:
         yield ch['key'][0], ch['value']
+
 
 def main():
     try:
@@ -58,6 +58,7 @@ def main():
         print_message(msg)
     for msg in get_changes(channel, update_seq):
         print_message(msg)
+
 
 if __name__ == '__main__':
     try:
