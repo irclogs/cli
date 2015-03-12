@@ -32,7 +32,7 @@ def get_last_100(channel, limit=100):
 def get_changes(channel, since):
     params = dict(feed='continuous', channel=channel, filter='log/channel',
             heartbeat=30000, include_docs='true', since=since)
-    req = requests.get("https://irc.softver.org.mk/api/_changes", params=params, stream=True)
+    req = requests.get("https://irc.softver.org.mk/api/_changes", params=params, stream=True, timeout=60)
 
     for row in req.iter_lines(chunk_size=1, decode_unicode=True):
         if row.strip():
