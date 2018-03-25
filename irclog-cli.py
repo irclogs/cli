@@ -34,7 +34,7 @@ def get_changes(channel, since):
             heartbeat=30000, include_docs='true', since=since)
     req = requests.get(url, params=params, stream=True, timeout=60)
 
-    for row in req.iter_lines(chunk_size=1, decode_unicode=True):
+    for row in req.iter_lines(chunk_size=None, decode_unicode=True):
         if row.strip():
             change = json.loads(row)
             doc = change['doc']
