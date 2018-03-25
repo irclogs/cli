@@ -4,7 +4,6 @@ import requests
 from requests.compat import urljoin
 
 import json
-import sys
 from datetime import datetime
 
 IRCLOG_URL = 'https://irc.softver.org.mk/'
