@@ -30,15 +30,16 @@ def get_backlog(channel, limit=100):
 
 def get_changes(channel, since):
     url = urljoin(IRCLOG_URL, '/api/_changes')
-    params = dict(feed='continuous', channel=channel, filter='log/channel',
+    params = dict(feed='continuous', filter='_selector',
             heartbeat=30000, include_docs='true', since=since)
-    req = requests.get(url, params=params, stream=True, timeout=60)
+    data = { 'selector': {'channel':channel}}
+    req = requests.post(url, params=params, json=data, stream=True, timeout=60)
 
     for row in req.iter_lines(chunk_size=None, decode_unicode=True):
         if row.strip():
             change = json.loads(row)
             doc = change['doc']
-            yield doc
+            yield change['seq'], doc
 
 def list_channels(_args):
     url = urljoin(IRCLOG_URL, '/ddoc/_view/channel')
