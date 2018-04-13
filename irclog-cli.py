@@ -62,11 +62,21 @@ def follow(args):
     update_seq, msgs = get_backlog(args.channel, limit=args.limit)
     for msg in msgs:
         print_message(msg)
-    try:
-        for msg in get_changes(args.channel, update_seq):
-            print_message(msg)
-    except KeyboardInterrupt:
-        print()
+    loop(args.channel, update_seq)
+
+def loop(channel, update_seq):
+    done = False
+    while not done:
+        try:
+            for seq, msg in get_changes(channel, update_seq):
+                print_message(msg)
+                update_seq = seq
+        except KeyboardInterrupt:
+            print()
+            done = True
+        except requests.exceptions.ConnectionError:
+            pass
+
 
 
 if __name__ == '__main__':
