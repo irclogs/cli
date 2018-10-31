@@ -49,6 +49,21 @@ def list_channels(_args):
 
 def search(args):
     needle = ' '.join(args.needle)
+    url = urljoin(IRCLOG_URL, '/api/_find?include_docs=true')
+    q = { "selector": {
+                "channel": args.channel,
+                "message": {"$regex": needle },
+                # "timestamp": { "$gt" или "$lt": 1537798438 }
+            },
+            "fields": ["_id", "timestamp", "sender", "message"]
+        }
+    r = requests.post(url, json=q)
+    for doc in r.json()['docs']:
+        print_message(doc)
+
+def search_es(args):
+    '''search via an elasticsearch instance proxied behind /_search'''
+    needle = ' '.join(args.needle)
     url = urljoin(IRCLOG_URL, '/_search')
     q = {'query': {'bool': {'must': [
                 {'match': {'channel': args.channel}},
