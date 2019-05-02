@@ -61,7 +61,7 @@ def search(args):
                 "message": {"$regex": needle },
                 # "timestamp": { "$gt" или "$lt": 1537798438 }
             },
-            "fields": ["_id", "timestamp", "sender", "message"]
+            "fields": ["_id", "timestamp", "sender", "message", "channel"]
         }
     r = requests.post(url, json=q)
     for doc in r.json()['docs']:
