@@ -3,12 +3,18 @@
 import requests
 from requests.compat import urljoin
 
+import pprint
 import json
 from datetime import datetime
 
+global VERBOSE
 IRCLOG_URL = 'https://irc.softver.org.mk/'
 
 def print_message(doc):
+    if VERBOSE:
+        pprint.pprint(doc)
+        return
+
     tm = datetime.fromtimestamp(doc['timestamp'])
     tm = tm.strftime('%H:%M:%S')
     print("%s %s: %s" % (tm, doc['sender'], doc['message']))
@@ -96,7 +102,9 @@ def loop(channel, update_seq):
 
 if __name__ == '__main__':
     import argparse
+
     parser = argparse.ArgumentParser()
+    parser.add_argument('--verbose', '-v', action='count')
     subparsers = parser.add_subparsers(title='subcommands')
 
     s = subparsers.add_parser('search', help='search <channel> <text…>')
@@ -113,6 +121,7 @@ if __name__ == '__main__':
     l.set_defaults(func=list_channels)
 
     args = parser.parse_args()
+    VERBOSE = args.verbose
     if 'func' in args:
         args.func(args)
     else:
