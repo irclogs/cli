@@ -21,25 +21,30 @@ def print_message(doc):
 
 def get_backlog(channel, limit=100):
     url = urljoin(IRCLOG_URL, '/ddoc/_view/channel')
-    startkey = '["%s",{}]' % channel
-    endkey = '["%s",0]' % channel
+    startkey = [channel,{}]
+    endkey = [channel,0]
 
-    params = dict(update_seq='true', reduce='false', descending='true',
+    query = dict(update_seq='true', reduce='false', descending='true',
             limit=limit, include_docs='true', startkey=startkey, endkey=endkey)
-    req = requests.get(url, params=params)
+    req = requests.post(url, json=query)
+    if not req.ok:
+        req.raise_for_status()
 
     backlog = req.json()
+    update_seq = backlog['update_seq']
     def _gen():
         for row in sorted(backlog['rows'], key=lambda r: r['doc']['timestamp']):
             yield row['doc']
-    return backlog['update_seq'], _gen()
+    return update_seq, _gen()
 
 def get_changes(channel, since):
     url = urljoin(IRCLOG_URL, '/api/_changes')
-    params = dict(feed='continuous', filter='_selector',
+    query = dict(feed='continuous', filter='_selector',
             heartbeat=30000, include_docs='true', since=since)
     data = { 'selector': {'channel':channel}}
-    req = requests.post(url, params=params, json=data, stream=True, timeout=60)
+    req = requests.post(url, params=query, json=data, stream=True, timeout=60)
+    if not req.ok:
+        req.raise_for_status()
 
     for row in req.iter_lines(chunk_size=None, decode_unicode=True):
         if row.strip():
@@ -49,7 +54,11 @@ def get_changes(channel, since):
 
 def list_channels(_args):
     url = urljoin(IRCLOG_URL, '/ddoc/_view/channel')
-    req = requests.get(url, params = {'group_level':1})
+    query = {'group_level': 1}
+    req = requests.post(url, json=query)
+    if not req.ok:
+        req.raise_for_status()
+
     for ch in req.json()['rows']:
         print(ch['key'][0], ch['value'])
 
@@ -63,21 +72,12 @@ def search(args):
             },
             "fields": ["_id", "timestamp", "sender", "message", "channel"]
         }
-    r = requests.post(url, json=q)
-    for doc in r.json()['docs']:
-        print_message(doc)
+    req = requests.post(url, json=q)
+    if not req.ok:
+        req.raise_for_status()
 
-def search_es(args):
-    '''search via an elasticsearch instance proxied behind /_search'''
-    needle = ' '.join(args.needle)
-    url = urljoin(IRCLOG_URL, '/_search')
-    q = {'query': {'bool': {'must': [
-                {'match': {'channel': args.channel}},
-                {'match': {'message': needle }}
-        ]}}}
-    r = requests.post(url, json=q)
-    for hit in r.json()['hits']['hits']:
-        print_message(hit['_source'])
+    for doc in req.json()['docs']:
+        print_message(doc)
 
 def follow(args):
     update_seq, msgs = get_backlog(args.channel, limit=args.limit)
