@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 
 global VERBOSE
-IRCLOG_URL = "https://irc.softver.org.mk/"
+IRCLOG_URL = "https://db.softver.org.mk/irclog/"
 
 
 def print_message(doc):
@@ -22,7 +22,7 @@ def print_message(doc):
 
 
 def get_backlog(channel, limit=100):
-    url = urljoin(IRCLOG_URL, "/ddoc/_view/channel")
+    url = urljoin(IRCLOG_URL, "_design/log/_view/channel")
     startkey = [channel, {}]
     endkey = [channel, 0]
 
@@ -50,7 +50,7 @@ def get_backlog(channel, limit=100):
 
 
 def get_changes(channel, since):
-    url = urljoin(IRCLOG_URL, "/api/_changes")
+    url = urljoin(IRCLOG_URL, "_changes")
     query = dict(
         feed="continuous",
         filter="_selector",
@@ -71,7 +71,7 @@ def get_changes(channel, since):
 
 
 def list_channels(_args):
-    url = urljoin(IRCLOG_URL, "/ddoc/_view/channel")
+    url = urljoin(IRCLOG_URL, "_design/log/_view/channel")
     query = {"group_level": 1}
     req = requests.post(url, json=query)
     if not req.ok:
@@ -83,7 +83,7 @@ def list_channels(_args):
 
 def search(args):
     needle = " ".join(args.needle)
-    url = urljoin(IRCLOG_URL, "/api/_find?include_docs=true")
+    url = urljoin(IRCLOG_URL, "_find?include_docs=true")
     q = {
         "selector": {
             "channel": args.channel,
