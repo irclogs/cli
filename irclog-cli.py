@@ -52,10 +52,10 @@ def get_backlog(channel, limit=100):
     return update_seq, _gen()
 
 
-def get_changes(channel, since):
+def get_changes(channel, since, feed="continuous"):
     url = urljoin(IRCLOG_URL, "_changes")
     query = dict(
-        feed="continuous",
+        feed=feed,
         filter="_selector",
         heartbeat=30000,
         include_docs="true",
@@ -65,7 +65,9 @@ def get_changes(channel, since):
     req = requests.post(url, params=query, json=data, stream=True, timeout=60)
     if not req.ok:
         req.raise_for_status()
+    return req
 
+def filter_changes(req):
     for row in req.iter_lines(chunk_size=None, decode_unicode=True):
         if row.strip():
             change = json.loads(row)
@@ -114,7 +116,8 @@ def loop(channel, update_seq):
     done = False
     while not done:
         try:
-            for seq, msg in get_changes(channel, update_seq):
+            req = get_changes(channel, update_seq)
+            for seq, msg in filter_changes(req):
                 print_message(msg)
                 update_seq = seq
         except KeyboardInterrupt:
