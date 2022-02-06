@@ -16,9 +16,12 @@ def print_message(doc):
         pprint.pprint(doc)
         return
 
-    tm = datetime.fromtimestamp(doc["timestamp"])
-    tm = tm.strftime("%H:%M:%S")
-    print("%s %s: %s" % (tm, doc["sender"], doc["message"]))
+    t = datetime.fromtimestamp(doc["timestamp"])
+    tm = t.strftime("%H:%M:%S")
+    dt = t.strftime("%Y-%m-%d")
+    sender = doc["sender"]
+    msg = doc.get("message", doc.get("notice"))
+    print(f"{dt} {tm} {sender}: {msg}")
 
 
 def get_backlog(channel, limit=100):
