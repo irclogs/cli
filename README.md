@@ -4,16 +4,17 @@
 The logs are stored in couchdb.
 
 ```
-usage: irclog-cli.py [-h] [--verbose] {search,follow,list} ...
+usage: irclog-cli.py [-h] [--verbose] {search,follow,dump,list} ...
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --verbose, -v
 
 subcommands:
-  {search,follow,list}
+  {search,follow,dump,list}
     search              search <channel> <text…>
     follow              follow <channel> [backlog limit, default 100]
+    dump                dump <channel> <file>
     list                list all channels
 ```
 

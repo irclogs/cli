@@ -127,6 +127,29 @@ def follow_loop(channel, update_seq):
             pass
 
 
+def open_dump_file(filename):
+    try:
+        fp = open(args.file, "r+")
+        try:
+            obj = json.load(fp)
+            return fp, obj
+        except json.JSONDecodeError:
+            pass
+    except FileNotFoundError:
+        fp = open(args.file, "w")
+    return fp, {"results": [], "last_seq": "0"}
+
+def dump(args):
+    fp, obj = open_dump_file(args.file)
+    since = obj["last_seq"]
+    req = get_changes(args.channel, since=since, feed="normal")
+
+    j = req.json()
+    obj["last_seq"] = j["last_seq"]
+    obj["results"].extend(j["results"])
+    json.dump(obj, fp)
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -145,6 +168,13 @@ if __name__ == "__main__":
     f.add_argument("channel", help="channel to look at")
     f.add_argument("limit", default=100, nargs="?", type=int, help="limit backlog")
     f.set_defaults(func=follow)
+
+    d = subparsers.add_parser(
+        "dump", help="dump <channel> <file>"
+    )
+    d.add_argument("channel", help="channel to dump")
+    d.add_argument("file", help="dump file in json")
+    d.set_defaults(func=dump)
 
     l = subparsers.add_parser("list", help="list all channels")
     l.set_defaults(func=list_channels)
