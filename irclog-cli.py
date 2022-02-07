@@ -53,7 +53,7 @@ def get_backlog(channel, limit=100):
     return update_seq, _gen()
 
 
-def get_changes(channel, since="0", feed="continuous"):
+def get_changes(channel, since=None, feed="continuous"):
     url = urljoin(IRCLOG_URL, "_changes")
     query = dict(
         feed=feed,
@@ -117,7 +117,7 @@ def follow_loop(channel, update_seq):
     done = False
     while not done:
         try:
-            req = get_changes(channel, update_seq)
+            req = get_changes(channel, since=update_seq)
             for seq, msg in filter_changes(req):
                 print_message(msg)
                 update_seq = seq
