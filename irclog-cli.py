@@ -1,11 +1,12 @@
 #! /usr/bin/python
 
-import requests
 from requests.compat import urljoin
+import requests
 
-import pprint
-import json
 from datetime import datetime
+import os
+import json
+import pprint
 
 global VERBOSE
 IRCLOG_URL = "https://db.softver.org.mk/irclog/"
@@ -129,25 +130,25 @@ def follow_loop(channel, update_seq):
 
 def open_dump_file(filename):
     try:
-        fp = open(args.file, "r+")
-        try:
-            obj = json.load(fp)
-            return fp, obj
-        except json.JSONDecodeError:
-            pass
-    except FileNotFoundError:
-        fp = open(args.file, "w")
-    return fp, {"results": [], "last_seq": "0"}
+        fp = open(args.file, "r")
+        obj = json.load(fp)
+        return obj
+    except:
+        return {"results": [], "last_seq": None}
 
 def dump(args):
-    fp, obj = open_dump_file(args.file)
+    obj = open_dump_file(args.file)
     since = obj["last_seq"]
     req = get_changes(args.channel, since=since, feed="normal")
 
     j = req.json()
     obj["last_seq"] = j["last_seq"]
     obj["results"].extend(j["results"])
+
+    updated = args.file + '~'
+    fp = open(updated, 'x')
     json.dump(obj, fp)
+    os.replace(updated, args.file)
 
 
 if __name__ == "__main__":
